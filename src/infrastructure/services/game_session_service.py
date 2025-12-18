@@ -1,0 +1,16 @@
+from src.infrastructure.repositories.game_session_repository import GameSessionRepository
+
+
+class GameSessionService:
+    def __init__(self, repository: GameSessionRepository):
+        self.repository = repository
+
+    def add(cls) -> None: ...
+
+    def get_games_sessions(cls) -> list[dict]: ...
+
+    def get_top_scores(cls) -> list[dict]: ...
+
+    def get_recent_games(cls) -> list: ...
+
+    def get_player_stats(cls) -> dict[str, str | int | float]: ...
