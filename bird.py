@@ -2,13 +2,18 @@ import arcade
 
 
 class Bird(arcade.Sprite):
-    def __init__(self):
+    def __init__(self, is_night=False):
         super().__init__()
         self.on_game_view = False
         self.on_the_ground = False
-        self.textures = [arcade.load_texture("src/assets/sprites/yellowbird-downflap.png"),
-                         arcade.load_texture("src/assets/sprites/yellowbird-midflap.png"),
-                         arcade.load_texture("src/assets/sprites/yellowbird-upflap.png")]
+        if not is_night:
+            self.textures = [arcade.load_texture("src/assets/sprites/yellowbird-downflap.png"),
+                             arcade.load_texture("src/assets/sprites/yellowbird-midflap.png"),
+                             arcade.load_texture("src/assets/sprites/yellowbird-upflap.png")]
+        else:
+            self.textures = [arcade.load_texture("src/assets/sprites/bluebird-downflap.png"),
+                             arcade.load_texture("src/assets/sprites/bluebird-midflap.png"),
+                             arcade.load_texture("src/assets/sprites/bluebird-upflap.png")]
         self.jump_high = 0
         self.gravity = None
         self.current_angle = 0
