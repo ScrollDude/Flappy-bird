@@ -205,14 +205,13 @@ class FlappyBirdGame(arcade.View):
         self.bird.center_x = self.width // 3
         self.bird.center_y = self.height // 2
         self.bird.gravity = GRAVITY
-        self.player_list.append(self.bird)
 
         self.bird_in_night = Bird(True)
         self.bird_in_night.center_x = self.width // 3
         self.bird_in_night.center_y = self.height // 2
         self.bird_in_night.gravity = GRAVITY
         self.bird_in_night.alpha = 0
-        self.player_list.append(self.bird_in_night)
+        self.player_list.extend([self.bird, self.bird_in_night])
 
     def on_draw(self):
         """Отрисовка игрового экрана"""
@@ -284,32 +283,6 @@ class FlappyBirdGame(arcade.View):
             # Функция для сдвига земли
             self.move_base()
 
-            self.time_appearance -= delta_time
-            if self.time_appearance < 0:  # Проверка "Пришло ли время тексту исчезнуть/появиться?"
-                self.time_appearance = TIME_APPEARANCE_FOR_TEXT
-                self.show_text = not self.show_text
-
-            # Проверка "Можно ли 'заспавнить' усилитель"
-            if not self.can_spawn_power_up and not self.stand_by:
-                self.time_appearance_for_power_ups -= delta_time
-                if self.time_appearance_for_power_ups < 0:
-                    self.time_appearance_for_power_ups = 10
-                    self.can_spawn_power_up = True
-
-            # Проверка "Нажал ли игрок на пробел (SPACE) хотя бы 1 раз?"
-            if not self.stand_by:
-                self.time_appearance_for_pipe -= delta_time_speed
-                self.duration_seconds += delta_time
-                if self.duration_seconds // 10 > self.level:
-                    if MAX_SPEED > self.speed:
-                        self.level += 1
-                        self.speed = self.speed * SPEED_UPDATE
-
-            # Проверка "Пришло ли время появится трубе?"
-            if self.time_appearance_for_pipe < 0:
-                self.time_appearance_for_pipe = TIME_APPEARANCE_FOR_PIPE
-                self.generate_pipes()
-
             # Проверка "Столкнулся ли игрок с трубой?"
             self.touched_pipe()
 
@@ -319,58 +292,28 @@ class FlappyBirdGame(arcade.View):
             self.move_pipes()
 
             # Передвижение усиления влево
-            for power_up in self.power_up_lists:
-                power_up.center_x -= self.speed
-                if power_up.right < -SCREEN_WIDTH:
-                    self.power_up_lists.remove(power_up)
+            self.move_power_up()
 
             # Проверка "Коснулись ли мы усиления?"
             self.grab_power_up()
 
-            # Проверка на активность усиления
-            if self.power_up_is_active:
-                self.active_time_of_power_up -= delta_time
-                if self.active_time_of_power_up > 0:
-                    self.set_power_up()
-                else:
-                    self.disable_power_up()
+            # Обновление всех таймеров
+            self.timer_changes(delta_time, delta_time_speed)
 
             # Проверка "Коснулась ли птичка земли?" и "Сделала ли птичка прыжок?"
             self.touched_base()
 
-            # Обновляем частицы
-            emitters_copy = self.emitters.copy()  # Защищаемся от мутаций списка
-            for emit in emitters_copy:
-                emit.update(delta_time)
-            for emit in emitters_copy:
-                if emit.can_reap():  # Готов к уборке?
-                    self.emitters.remove(emit)
+            self.emit_update(delta_time)
 
             # Изменяем центр X и Y голубой птички, а также угол наклона
             self.bird_in_night.center_x, self.bird_in_night.center_y = (self.bird.center_x, self.bird.center_y)
             self.bird_in_night.angle = self.bird.angle
 
             # Меняем день и ночь каждые 30 секунд
-            if self.duration_seconds // 30 % 2 == 1:
-                self.night.alpha += 5 if self.night.alpha < 255 else 0
-                self.bird_in_night.alpha += 5 if self.bird_in_night.alpha < 255 else 0
-                self.bird.alpha -= 5 if self.bird.alpha > 0 else 0
-            else:
-                self.night.alpha -= 5 if self.night.alpha > 0 else 0
-                self.bird_in_night.alpha -= 5 if self.bird_in_night.alpha > 0 else 0
-                self.bird.alpha += 5 if self.bird.alpha < 255 else 0
-
+            self.day_night_change()
         else:
             # Уменьшаем масштабируемость камеры перед переключением экрана
-            self.world_camera = arcade.camera.Camera2D(zoom=self.zooming)
-            position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
-
-            self.world_camera.position = arcade.math.lerp_2d(  # Изменяем позицию камеры
-                self.world_camera.position,
-                position,
-                CAMERA_LERP)
-
-            self.zooming += delta_time * 5
+            self.zoom_up(delta_time)
 
     def on_key_press(self, key, modifiers):
         """Управление птичкой"""
@@ -409,6 +352,69 @@ class FlappyBirdGame(arcade.View):
                 mutation_callback=self.gravity_drag,
             ),
         )
+
+    def timer_changes(self, delta_time, delta_time_speed):
+        self.time_appearance -= delta_time
+        if self.time_appearance < 0:  # Проверка "Пришло ли время тексту исчезнуть/появиться?"
+            self.time_appearance = TIME_APPEARANCE_FOR_TEXT
+            self.show_text = not self.show_text
+
+        # Проверка "Можно ли 'заспавнить' усилитель"
+        if not self.can_spawn_power_up and not self.stand_by:
+            self.time_appearance_for_power_ups -= delta_time
+            if self.time_appearance_for_power_ups < 0:
+                self.time_appearance_for_power_ups = 10
+                self.can_spawn_power_up = True
+
+        # Проверка "Нажал ли игрок на пробел (SPACE) хотя бы 1 раз?"
+        if not self.stand_by:
+            self.time_appearance_for_pipe -= delta_time_speed
+            self.duration_seconds += delta_time
+            if self.duration_seconds // 10 > self.level:
+                if MAX_SPEED > self.speed:
+                    self.level += 1
+                    self.speed = self.speed * SPEED_UPDATE
+
+        # Проверка "Пришло ли время появится трубе?"
+        if self.time_appearance_for_pipe < 0:
+            self.time_appearance_for_pipe = TIME_APPEARANCE_FOR_PIPE
+            self.generate_pipes()
+
+        # Проверка на активность усиления
+        if self.power_up_is_active:
+            self.active_time_of_power_up -= delta_time
+            if self.active_time_of_power_up > 0:
+                self.set_power_up()
+            else:
+                self.disable_power_up()
+
+    def zoom_up(self, delta_time):
+        self.world_camera = arcade.camera.Camera2D(zoom=self.zooming)
+        position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        self.world_camera.position = arcade.math.lerp_2d(  # Изменяем позицию камеры
+            self.world_camera.position,
+            position,
+            CAMERA_LERP)
+        self.zooming += delta_time * 5
+
+    def day_night_change(self):
+        if self.duration_seconds // 30 % 2 == 1:
+            self.night.alpha += 5 if self.night.alpha < 255 else 0
+            self.bird_in_night.alpha += 5 if self.bird_in_night.alpha < 255 else 0
+            self.bird.alpha -= 5 if self.bird.alpha > 0 else 0
+        else:
+            self.night.alpha -= 5 if self.night.alpha > 0 else 0
+            self.bird_in_night.alpha -= 5 if self.bird_in_night.alpha > 0 else 0
+            self.bird.alpha += 5 if self.bird.alpha < 255 else 0
+
+    def emit_update(self, delta_time):
+        """Обновляем частицы"""
+        emitters_copy = self.emitters.copy()  # Защищаемся от мутаций списка
+        for emit in emitters_copy:
+            emit.update(delta_time)
+        for emit in emitters_copy:
+            if emit.can_reap():  # Готов к уборке?
+                self.emitters.remove(emit)
 
     def touched_base(self):
         """Коснулся ли игрок земли?"""
@@ -536,6 +542,12 @@ class FlappyBirdGame(arcade.View):
                     self.score += 2 if self.double_points else 1
                     self.pipes_passed += 1
                 pipe.passed = True
+
+    def move_power_up(self):
+        for power_up in self.power_up_lists:
+            power_up.center_x -= self.speed
+            if power_up.right < -SCREEN_WIDTH:
+                self.power_up_lists.remove(power_up)
 
     def check_immortality(self, delta_time):
         """Проверка на режим бессмертия"""
