@@ -4,6 +4,7 @@ from pyglet.graphics import Batch
 from arcade.particles import FadeParticle, Emitter, EmitBurst
 from src.infrastructure.models.game.bird import Bird
 from src.infrastructure.models.game.pipe import Pipe
+from src.infrastructure.models.game.game_over_view import GameOverView
 
 
 # Константы
@@ -34,10 +35,61 @@ SPARK_TEX = [arcade.make_soft_circle_texture(8, arcade.color.PASTEL_YELLOW),
 
 
 class FlappyBirdGame(arcade.View):
-    def __init__(self):
+    def __init__(self, start_view):
         """Инициализация игрового окна"""
         super().__init__()
+        self.start_view = start_view
+
         # Загрузка всех текстур в игровое окно
+        self.load_textures()
+
+        # Загрузка звуков в игру
+        self.load_sounds()
+
+        # Булевые рычаги для работы с игрой и усилителями
+        self.load_boolean_levers()
+
+        # Числовые значения для взаимодействия с достижениями и функционалами игры
+        self.load_numerical_values()
+
+        # Загрузка списков спрайтов
+        self.player_list = arcade.SpriteList()
+        self.pipe_list = arcade.SpriteList()
+        self.power_up_lists = arcade.SpriteList()
+        self.shield_list = arcade.SpriteList()
+        self.time_list = arcade.SpriteList()
+        self.emitters = []
+        self.death_reason = None
+
+        self.day = arcade.Sprite(self.texture_day, center_x=SCREEN_WIDTH // 2, center_y=SCREEN_HEIGHT // 2)
+        self.night = arcade.Sprite(self.texture_night, center_x=SCREEN_WIDTH // 2, center_y=SCREEN_HEIGHT // 2)
+        self.night.alpha = 0
+
+        self.time_list.extend([self.day, self.night])
+
+        self.hearts_list = arcade.SpriteList()
+        for ind in range(1, max(self.hearts_texture.keys()) + 1):
+            heart = arcade.Sprite(self.hearts_texture[ind][0], scale=0.1,
+                                  center_x=self.width - (self.width // 10) * ind,
+                                  center_y=self.width // 10)
+            self.hearts_list.append(heart)
+
+        self.base_list = arcade.SpriteList()
+        self.base = arcade.Sprite(self.base_texture, center_x=self.width // 2, center_y=self.base_texture.height // 2)
+        self.base_list.append(self.base)
+
+        self.base2 = arcade.Sprite(self.base_texture, center_x=self.width + self.width // 2,
+                                   center_y=self.base_texture.height // 2)
+        self.base_list.append(self.base2)
+
+        self.physics_engine = None
+        self.world_camera = None
+        self.batch = Batch()
+
+        # Загрузка птиц
+        self.load_birds()
+
+    def load_textures(self):
         self.texture_day = arcade.load_texture('src/assets/sprites/background-day.png')
         self.texture_night = arcade.load_texture('src/assets/sprites/background-night.png')
         self.flappy_bird_texture = arcade.load_texture('src/assets/sprites/flappy_bird.png')
@@ -70,14 +122,14 @@ class FlappyBirdGame(arcade.View):
                                 '8': arcade.load_texture('src/assets/sprites/8.png'),
                                 '9': arcade.load_texture('src/assets/sprites/9.png')}
 
-        # Загрузка звуков в игру
+    def load_sounds(self):
         self.jump_sound = arcade.load_sound("src/assets/audio/wing.wav")
         self.hit_sound = arcade.load_sound("src/assets/audio/hit.wav")
         self.point_sound = arcade.load_sound("src/assets/audio/point.wav")
         self.broken_glass_sound = arcade.load_sound("src/assets/audio/broken_glass_sound.wav")
-        self.die_sound = arcade.load_sound("src/assets/audio/die.wav")
+        self.grab_power_up_sound = arcade.load_sound("src/assets/audio/grab_power_up.wav")
 
-        # Булевые рычаги для работы с игрой и усилителями
+    def load_boolean_levers(self):
         self.stand_by = True
         self.show_text = True
         self.immortality = False
@@ -87,11 +139,13 @@ class FlappyBirdGame(arcade.View):
         self.shield = False
         self.ghost_mode = False
         self.wide_passage = False
+        self.paused = False
 
-        # Числовые значения для взаимодействия с достижениями и функционалами игры
+    def load_numerical_values(self):
         self.level = 0
         self.duration_seconds = 0
         self.health = 3
+        self.distance = 0
         self.score = 0
         self.pipes_passed = 0
         self.powerup_types_count = 0
@@ -103,38 +157,7 @@ class FlappyBirdGame(arcade.View):
         self.time_appearance_for_power_ups = random.randint(3, 10)
         self.active_time_of_power_up = TIME_OF_POWER_UP
 
-        self.player_list = arcade.SpriteList()
-        self.pipe_list = arcade.SpriteList()
-        self.power_up_lists = arcade.SpriteList()
-        self.shield_list = arcade.SpriteList()
-        self.time_list = arcade.SpriteList()
-        self.emitters = []
-
-        self.day = arcade.Sprite(self.texture_day, center_x=SCREEN_WIDTH // 2, center_y=SCREEN_HEIGHT // 2)
-        self.night = arcade.Sprite(self.texture_night, center_x=SCREEN_WIDTH // 2, center_y=SCREEN_HEIGHT // 2)
-        self.night.alpha = 0
-
-        self.time_list.extend([self.day, self.night])
-
-        self.hearts_list = arcade.SpriteList()
-        for ind in range(1, max(self.hearts_texture.keys()) + 1):
-            heart = arcade.Sprite(self.hearts_texture[ind][0], scale=0.1,
-                                  center_x=self.width - (self.width // 10) * ind,
-                                  center_y=self.width // 10)
-            self.hearts_list.append(heart)
-
-        self.base_list = arcade.SpriteList()
-        self.base = arcade.Sprite(self.base_texture, center_x=self.width // 2, center_y=self.base_texture.height // 2)
-        self.base_list.append(self.base)
-
-        self.base2 = arcade.Sprite(self.base_texture, center_x=self.width + self.width // 2,
-                                   center_y=self.base_texture.height // 2)
-        self.base_list.append(self.base2)
-
-        self.physics_engine = None
-        self.world_camera = None
-        self.batch = Batch()
-
+    def load_birds(self):
         self.bird = Bird()
         self.bird.center_x = self.width // 3
         self.bird.center_y = self.height // 2
@@ -198,12 +221,16 @@ class FlappyBirdGame(arcade.View):
         # Рисовка текста
         text = arcade.Text(f'Level: {self.level}', self.width // 5, self.height // 25, anchor_x='center',
                            font_size=24, batch=self.batch)
+        if self.paused:
+            pause_text = arcade.Text(f'Pause', self.width // 2, self.height // 2, anchor_x='center',
+                           font_size=24, batch=self.batch)
         self.batch.draw()
 
     def on_update(self, delta_time):
         """Обновление игрового экрана"""
         delta_time_speed = delta_time + (delta_time * (self.level / 4))
-        if self.health:
+        self.distance += delta_time_speed * self.speed
+        if self.health and not self.paused:
             if self.physics_engine is not None:
                 self.physics_engine.update()
             self.player_list.update(delta_time)
@@ -247,18 +274,20 @@ class FlappyBirdGame(arcade.View):
 
             # Меняем день и ночь каждые 30 секунд
             self.day_night_change()
-        else:
+        elif not self.health and not self.paused:
             # Уменьшаем масштабируемость камеры перед переключением экрана
             self.zoom_up(delta_time)
 
     def on_key_press(self, key, modifiers):
         """Управление птичкой"""
-        if key == arcade.key.SPACE and self.bird.on_game_view and self.health:
+        if key == arcade.key.P:
+            self.paused = not self.paused
+        elif key == arcade.key.SPACE and self.bird.on_game_view and self.health and not self.paused:
             self.physics_engine.jump(JUMP)
             self.bird.jump_high = JUMP
             self.bird.current_angle = -60
-            self.jump_sound.play()
-        elif key == arcade.key.SPACE and not self.bird.on_game_view and self.health:
+            self.jump_sound.play(volume=0.5)
+        elif key == arcade.key.SPACE and not self.bird.on_game_view and self.health and not self.paused:
             self.stand_by = False
             self.bird.on_game_view = True
             self.physics_engine = arcade.PhysicsEnginePlatformer(self.bird, walls=self.base_list,
@@ -266,7 +295,7 @@ class FlappyBirdGame(arcade.View):
             self.physics_engine.jump(JUMP)
             self.bird.jump_high = JUMP
             self.bird.current_angle = -60
-            self.jump_sound.play()
+            self.jump_sound.play(volume=0.5)
 
     def gravity_drag(self, p):
         """Для искр: чуть вниз и затухание скорости"""
@@ -331,7 +360,10 @@ class FlappyBirdGame(arcade.View):
             self.world_camera.position,
             position,
             CAMERA_LERP)
-        self.zooming += delta_time * 5
+        self.zooming += delta_time * 10
+        if self.zooming > 20.0:
+            game_over = GameOverView(self, self.start_view)
+            self.window.show_view(game_over)
 
     def day_night_change(self):
         if self.duration_seconds // 30 % 2 == 1:
@@ -362,10 +394,12 @@ class FlappyBirdGame(arcade.View):
                     self.immortality = True
                     if self.shield:
                         self.disable_power_up()
-                        self.broken_glass_sound.play()
+                        self.broken_glass_sound.play(volume=0.5)
                     else:
                         self.health -= 1
-                        self.hit_sound.play()
+                        self.hit_sound.play(volume=0.5)
+                        if self.health <= 0:
+                            self.death_reason = 'Ground'
             elif not self.physics_engine.can_jump(6) and self.bird.on_the_ground:
                 self.bird.on_the_ground = False
 
@@ -376,10 +410,12 @@ class FlappyBirdGame(arcade.View):
             self.immortality = True
             if self.shield:
                 self.disable_power_up()
-                self.broken_glass_sound.play()
+                self.broken_glass_sound.play(volume=0.5)
             else:
                 self.health -= 1
-                self.hit_sound.play()
+                self.hit_sound.play(volume=0.5)
+                if self.health <= 0:
+                    self.death_reason = 'Pipe'
 
     def grab_power_up(self):
         """Схватил ли усилитель?"""
@@ -408,6 +444,7 @@ class FlappyBirdGame(arcade.View):
                     if elem.texture == value:
                         self.health += 1
             self.emitters.append(self.make_ring(self.bird.center_x, self.bird.center_y))
+            self.grab_power_up_sound.play(volume=0.5)
             elem.remove_from_sprite_lists()
             self.powerup_types_count += 1
 
@@ -474,7 +511,7 @@ class FlappyBirdGame(arcade.View):
                 pipe.remove_from_sprite_lists()
             if pipe.center_x < self.bird.center_x and not pipe.passed:
                 if not self.immortality:
-                    self.point_sound.play()
+                    self.point_sound.play(volume=0.5)
                     self.score += 2 if self.double_points else 1
                     self.pipes_passed += 1
                 pipe.passed = True

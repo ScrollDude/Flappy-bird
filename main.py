@@ -12,7 +12,7 @@ def main():
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     window.icon = load('src/assets/favicon.ico')
     window.set_icon(window.icon)
-    start_view = StartView()
+    start_view = StartView(StartView)
     window.show_view(start_view)
     arcade.run()
 

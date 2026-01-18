@@ -1,0 +1,147 @@
+import arcade
+from pyglet.graphics import Batch
+from arcade.gui import UIManager, UITextureButton
+from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout
+
+
+# Константы
+SPEED = 1.0
+SCREEN_WIDTH = 288
+SCREEN_HEIGHT = 512
+CAMERA_LERP = 0.12
+
+
+class GameOverView(arcade.View):
+    def __init__(self, previous_screen, start_view):
+        super().__init__()
+        self.start_view = start_view
+        self.batch = Batch()
+
+        self.manager = UIManager()
+        self.manager.enable()
+
+        # Layout для организации — как полки в шкафу
+        self.anchor_layout = UIAnchorLayout(y=-200)
+        self.box_layout = UIBoxLayout(vertical=True, space_between=10)
+
+        self.setup_widgets()
+        self.anchor_layout.add(self.box_layout)
+        self.manager.add(self.anchor_layout)
+
+        # Загрузка всех текстур в стартовое окно
+        self.texture = arcade.load_texture('src/assets/sprites/background-day.png')
+        self.base_texture = arcade.load_texture('src/assets/sprites/base.png')
+        self.game_over_texture = arcade.load_texture('src/assets/sprites/game_over.png')
+        self.result_texture = arcade.load_texture('src/assets/sprites/result.png')
+
+        # Загрузка музыки
+        self.die_sound = arcade.load_sound("src/assets/audio/die.wav")
+
+        # Загрузка земли
+        self.base_list = arcade.SpriteList()
+        self.base = arcade.Sprite(self.base_texture, center_x=self.width // 2, center_y=self.base_texture.height // 2)
+        self.base_list.append(self.base)
+
+        self.base2 = arcade.Sprite(self.base_texture, center_x=self.width + self.width // 2,
+                                   center_y=self.base_texture.height // 2)
+        self.base_list.append(self.base2)
+
+        # Загрузка данных для отображения в результатах
+        self.level = previous_screen.level
+        self.distance = previous_screen.distance
+        self.duration_seconds = previous_screen.duration_seconds
+        self.score = previous_screen.score
+        self.pipes_passed = previous_screen.pipes_passed
+        self.powerup_types_count = previous_screen.powerup_types_count
+        self.death_reason = previous_screen.death_reason
+        self.zooming = previous_screen.zooming
+
+        self.world_camera = previous_screen.world_camera
+
+    def setup_widgets(self):
+        # Здесь добавим ВСЕ виджеты — по порядку!
+        texture_normal = arcade.load_texture(":resources:/gui_basic_assets/button/red_normal.png")
+        restart_button = UITextureButton(texture=texture_normal)
+        restart_button.text = 'Restart'
+        restart_button.on_click = self.restart
+        self.box_layout.add(restart_button)
+
+        best_games_buttons = UITextureButton(texture=texture_normal)
+        best_games_buttons.text = 'Best games'
+        best_games_buttons.on_click = self.best_games
+        self.box_layout.add(best_games_buttons)
+
+    def restart(self, event):
+        self.manager.disable()
+        start_view = self.start_view(self.start_view)
+        self.window.show_view(start_view)
+
+    def best_games(self, event):
+        pass
+
+    def on_draw(self):
+        self.clear()
+        if self.world_camera is not None:
+            self.world_camera.use()
+        arcade.draw_texture_rect(self.texture, arcade.rect.XYWH(self.width // 2, self.height // 2, self.width,
+                                                                self.height))
+        arcade.draw_texture_rect(self.game_over_texture, arcade.rect.XYWH(self.width // 2, self.height - 50,
+                                                                            self.game_over_texture.width,
+                                                                            self.game_over_texture.height))
+        arcade.draw_texture_rect(self.result_texture, arcade.rect.XYWH(self.width // 2, self.height // 1.9,
+                                                                          self.result_texture.width * 2.5,
+                                                                          self.result_texture.height * 4))
+        text_survival = arcade.Text(f'Survival Time: {round(self.duration_seconds, 2)}',
+                                    self.width // 2, self.height // 2 + 110,
+                                    arcade.color.WHITE, anchor_x='center', font_size=16, batch=self.batch)
+        text_score = arcade.Text(f'Score: {self.score}',
+                                    self.width // 2, self.height // 2 + 75,
+                                    arcade.color.WHITE, anchor_x='center', font_size=16, batch=self.batch)
+        text_power_up = arcade.Text(f'Pick up power ups: {self.powerup_types_count}',
+                                    self.width // 2, self.height // 2 + 40,
+                                    arcade.color.WHITE, anchor_x='center', font_size=16, batch=self.batch)
+        text_pipes_count = arcade.Text(f'Pipes passed: {self.pipes_passed}',
+                                    self.width // 2, self.height // 2 + 5,
+                                    arcade.color.WHITE, anchor_x='center', font_size=16, batch=self.batch)
+        text_level = arcade.Text(f'Game over on level: {self.level}',
+                                       self.width // 2, self.height // 2 - 30,
+                                       arcade.color.WHITE, anchor_x='center', font_size=16, batch=self.batch)
+        text_distance = arcade.Text(f'Distance: {round(self.distance, 2)}',
+                                 self.width // 2, self.height // 2 - 65,
+                                 arcade.color.WHITE, anchor_x='center', font_size=16, batch=self.batch)
+        text_death_reason = arcade.Text(f'Death reason: {self.death_reason}',
+                                    self.width // 2, self.height // 2 - 100,
+                                    arcade.color.WHITE, anchor_x='center', font_size=16, batch=self.batch)
+        self.base_list.draw()
+        self.batch.draw()
+        if self.zooming == 1.0:
+            self.manager.draw()
+
+    def on_update(self, delta_time):
+        self.zoom_down(delta_time)
+        self.move_base()
+
+    def zoom_down(self, delta_time):
+        if self.zooming > 1.0:
+            self.world_camera = arcade.camera.Camera2D(zoom=self.zooming)
+            self.zooming -= delta_time * 10
+            position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+            self.world_camera.position = arcade.math.lerp_2d(  # Изменяем позицию камеры
+                self.world_camera.position,
+                position,
+                CAMERA_LERP)
+        else:
+            self.zooming = 1.0
+            self.world_camera = arcade.camera.Camera2D(zoom=self.zooming)
+            if self.die_sound is not None:
+                die_sound = self.die_sound
+                die_sound.play(volume=0.5)
+                self.die_sound = None
+                self.world_camera = None
+
+    def move_base(self):
+        for base in self.base_list:
+            base.center_x -= SPEED
+            if base.right < 0:
+                self.base_list[0].center_x = self.width // 2
+                self.base_list[1].center_x = self.width + self.width // 2 + 1.2

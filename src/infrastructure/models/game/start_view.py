@@ -7,9 +7,10 @@ SPEED = 1.0
 
 
 class StartView(arcade.View):
-    def __init__(self):
+    def __init__(self, start_view):
         """Инициализация стартового окна"""
         super().__init__()
+        self.start_view = start_view
 
         # Загрузка всех текстур в стартовое окно
         self.texture = arcade.load_texture('src/assets/sprites/background-day.png')
@@ -67,5 +68,5 @@ class StartView(arcade.View):
 
     def on_key_press(self, key, modifiers):
         """Начало игры при нажатии любой клавиши"""
-        flappy_bird = FlappyBirdGame()
+        flappy_bird = FlappyBirdGame(self.start_view)
         self.window.show_view(flappy_bird)
