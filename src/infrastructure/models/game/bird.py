@@ -7,13 +7,17 @@ class Bird(arcade.Sprite):
         self.on_game_view = False
         self.on_the_ground = False
         if not is_night:
-            self.textures = [arcade.load_texture("src/assets/sprites/yellowbird-downflap.png"),
-                             arcade.load_texture("src/assets/sprites/yellowbird-midflap.png"),
-                             arcade.load_texture("src/assets/sprites/yellowbird-upflap.png")]
+            self.textures = [
+                arcade.load_texture("src/assets/sprites/yellowbird-downflap.png"),
+                arcade.load_texture("src/assets/sprites/yellowbird-midflap.png"),
+                arcade.load_texture("src/assets/sprites/yellowbird-upflap.png"),
+            ]
         else:
-            self.textures = [arcade.load_texture("src/assets/sprites/bluebird-downflap.png"),
-                             arcade.load_texture("src/assets/sprites/bluebird-midflap.png"),
-                             arcade.load_texture("src/assets/sprites/bluebird-upflap.png")]
+            self.textures = [
+                arcade.load_texture("src/assets/sprites/bluebird-downflap.png"),
+                arcade.load_texture("src/assets/sprites/bluebird-midflap.png"),
+                arcade.load_texture("src/assets/sprites/bluebird-upflap.png"),
+            ]
         self.jump_high = 0
         self.gravity = None
         self.current_angle = 0
@@ -29,7 +33,10 @@ class Bird(arcade.Sprite):
             if self.current_time > 0.25:
                 self.current_time = 0
                 self.current_texture += self.current_switching
-                if self.current_texture >= len(self.textures) or self.current_texture < 0:
+                if (
+                    self.current_texture >= len(self.textures)
+                    or self.current_texture < 0
+                ):
                     self.current_switching *= -1
                     self.current_texture += self.current_switching
                 self.texture = self.textures[self.current_texture]
