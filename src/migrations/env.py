@@ -7,6 +7,9 @@ from alembic import context
 
 from src.core.config import settings
 from src.core.database import Base
+from src.infrastructure.models.db.game_session import GameSession
+from src.infrastructure.models.db.death_reason import DeathReason
+from src.infrastructure.models.db.achievement import Achievement
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
