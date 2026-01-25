@@ -97,4 +97,5 @@ class StartView(arcade.View):
     def on_key_press(self, key, modifiers):
         """Начало игры при нажатии любой клавиши"""
         flappy_bird = FlappyBirdGame(self.start_view, self.selected_jump_button)
+        self.manager.disable()
         self.window.show_view(flappy_bird)
