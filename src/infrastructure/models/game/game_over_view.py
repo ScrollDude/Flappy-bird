@@ -12,9 +12,10 @@ CAMERA_LERP = 0.12
 
 
 class GameOverView(arcade.View):
-    def __init__(self, previous_screen, start_view):
+    def __init__(self, previous_screen, start_view, jump_button):
         super().__init__()
         self.start_view = start_view
+        self.jump_button = jump_button
         self.batch = Batch()
 
         self.manager = UIManager()
@@ -73,7 +74,7 @@ class GameOverView(arcade.View):
 
     def restart(self, event):
         self.manager.disable()
-        start_view = self.start_view(self.start_view)
+        start_view = self.start_view(self.start_view, self.jump_button)
         self.window.show_view(start_view)
 
     def best_games(self, event):
