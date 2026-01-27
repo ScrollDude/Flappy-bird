@@ -3,6 +3,7 @@ from arcade.gui import UIManager, UITextureButton
 from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout
 from pyglet.graphics import Batch
 
+
 # Константы
 SCREEN_WIDTH = 288
 SCREEN_HEIGHT = 512
@@ -35,12 +36,23 @@ class ChangeButtonView(arcade.View):
         arcade.draw_texture_rect(self.texture, arcade.rect.XYWH(self.width // 2, self.height // 2, self.width,
                                                                 self.height))
         try:
-            text = arcade.Text(f'Selected button: {chr(self.selected_jump_button)}', SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
-                               arcade.color.WHITE, font_size=19, anchor_x='center', batch=self.batch)
+            text = arcade.Text(f'Selected button: {chr(self.selected_jump_button)}',
+                               SCREEN_WIDTH // 2,
+                               SCREEN_HEIGHT // 2,
+                               arcade.color.WHITE,
+                               font_size=19,
+                               anchor_x='center',
+                               batch=self.batch
+                               )
         except ValueError:
-            error_text = arcade.Text(f"Can't show selected symbol.", SCREEN_WIDTH // 2,
+            error_text = arcade.Text(f"Can't show selected symbol.",
+                                     SCREEN_WIDTH // 2,
                                      SCREEN_HEIGHT // 2,
-                                     arcade.color.WHITE, font_size=19, anchor_x='center', batch=self.batch)
+                                     arcade.color.WHITE,
+                                     font_size=19,
+                                     anchor_x='center',
+                                     batch=self.batch
+                                     )
         self.batch.draw()
         self.manager.draw()
 
