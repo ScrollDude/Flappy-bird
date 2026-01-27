@@ -5,6 +5,7 @@ from src.infrastructure.models.game.flappy_bird_game import FlappyBirdGame
 from arcade.gui import UIManager, UITextureButton
 from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout
 
+
 # Константы
 SPEED = 1.0
 
@@ -28,13 +29,9 @@ class StartView(arcade.View):
 
         # Загрузка всех текстур в стартовое окно
         self.texture = arcade.load_texture("src/assets/sprites/background-day.png")
-        self.flappy_bird_texture = arcade.load_texture(
-            "src/assets/sprites/flappy_bird.png"
-        )
+        self.flappy_bird_texture = arcade.load_texture("src/assets/sprites/flappy_bird.png")
         self.base_texture = arcade.load_texture("src/assets/sprites/base.png")
-        self.start_texture = arcade.load_texture(
-            "src/assets/sprites/press_any_key_to_start.png"
-        )
+        self.start_texture = arcade.load_texture("src/assets/sprites/press_any_key_to_start.png")
 
         self.time_appearance = 0.5
         self.show_text = True
@@ -85,10 +82,15 @@ class StartView(arcade.View):
         self.player_list.draw()
         self.base_list.draw()
         if self.show_text:
-            arcade.draw_texture_rect(self.start_texture, arcade.rect.XYWH(self.width // 2,
-                                                                          self.height // 2,
-                                                                          self.start_texture.width,
-                                                                          self.start_texture.height))
+            arcade.draw_texture_rect(
+                self.start_texture,
+                arcade.rect.XYWH(
+                    self.width // 2,
+                    self.height // 2,
+                    self.start_texture.width,
+                    self.start_texture.height
+                )
+            )
         self.manager.draw()
 
     def on_update(self, delta_time):

@@ -2,25 +2,19 @@ import arcade
 from arcade.gui import UIManager, UITextureButton
 from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout
 
-from src.infrastructure.repositories.game_session_repository import (
-    game_session_repository,
-)
-from src.infrastructure.services.game_session_service import GameSessionService
-
 
 # Константы
+SPEED = 1.0
 SCREEN_WIDTH = 288
 SCREEN_HEIGHT = 512
+CAMERA_LERP = 0.12
 
 
-class BestGamesView(arcade.View):
+class AchievementsView(arcade.View):
     def __init__(self, previous_view=None):
         super().__init__()
         self.manager = UIManager()
         self.manager.enable()
-        self.game_session_service = GameSessionService(
-            repository=game_session_repository
-        )
 
         self.anchor_layout = UIAnchorLayout(y=-180)
         self.box_layout = UIBoxLayout(vertical=True, space_between=10)
@@ -47,8 +41,6 @@ class BestGamesView(arcade.View):
             center_y=self.base_texture.height // 2,
         )
         self.base_list.append(self.base2)
-
-        self.stats = self.game_session_service.get_game_statistics()
 
     def setup_widgets(self):
         texture_normal = arcade.load_texture(
@@ -91,71 +83,13 @@ class BestGamesView(arcade.View):
         )
 
         arcade.draw_text(
-            "GAME STATS",
+            "GAME ACHIEVEMENTS",
             self.width // 2,
             self.height - 60,
             arcade.color.YELLOW_ROSE,
             font_size=20,
             anchor_x="center",
             bold=True,
-        )
-
-        arcade.draw_text(
-            f"Games: {self.stats['games_count']}",
-            self.width // 2,
-            self.height // 2 + 145,
-            arcade.color.WHITE,
-            font_size=14,
-            anchor_x="center",
-        )
-        arcade.draw_text(
-            f"Score: {self.stats['avg_score']}",
-            self.width // 2,
-            self.height // 2 + 110,
-            arcade.color.WHITE,
-            font_size=14,
-            anchor_x="center",
-        )
-        arcade.draw_text(
-            f"Time: {self.stats['avg_duration']:.1f}s",
-            self.width // 2,
-            self.height // 2 + 75,
-            arcade.color.WHITE,
-            font_size=14,
-            anchor_x="center",
-        )
-        arcade.draw_text(
-            f"Pipes: {self.stats['avg_pipes']:.1f}",
-            self.width // 2,
-            self.height // 2 + 40,
-            arcade.color.WHITE,
-            font_size=14,
-            anchor_x="center",
-        )
-        arcade.draw_text(
-            f"Powerups: {self.stats['avg_powerups']:.1f}",
-            self.width // 2,
-            self.height // 2 + 5,
-            arcade.color.WHITE,
-            font_size=14,
-            anchor_x="center",
-        )
-        arcade.draw_text(
-            f"Distance: {self.stats['avg_distance']}",
-            self.width // 2,
-            self.height // 2 - 30,
-            arcade.color.WHITE,
-            font_size=14,
-            anchor_x="center",
-        )
-        arcade.draw_text(
-            f"Best: {self.stats['max_score']}",
-            self.width // 2,
-            self.height // 2 - 65,
-            arcade.color.YELLOW,
-            font_size=15,
-            bold=True,
-            anchor_x="center",
         )
 
         self.base_list.draw()
