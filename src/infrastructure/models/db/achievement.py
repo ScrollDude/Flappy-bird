@@ -7,4 +7,5 @@ class Achievement(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     description: Mapped[str]
+    icon_url: Mapped[str]
     is_complete: Mapped[bool] = mapped_column(default=False)
