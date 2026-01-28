@@ -1,22 +1,35 @@
-from abc import ABC, abstractmethod
+from sqlalchemy import select
 
 from src.infrastructure.repositories.base_repository import BaseRepository
 from src.infrastructure.models.db.game_session import GameSession
+from src.infrastructure.models.db.achievement import Achievement
+from src.core.database import session_maker
 
 
-class AchievementAbstractRepository(ABC):
-    @abstractmethod
-    def get_games_sessions(self) -> list[GameSession]: ...
-
-    @abstractmethod
-    def get_top_scores(self) -> list[GameSession]: ...
-
-    @abstractmethod
-    def get_recent_games(self) -> list[GameSession]: ...
-
-
-class AchievementRepository(BaseRepository, AchievementAbstractRepository):
+class AchievementRepository(BaseRepository):
     def __init__(self, model: GameSession):
         super().__init__(
             model=model,
         )
+
+    def check_and_update(id: int):
+        with session_maker() as session:
+            query = select(Achievement).filter_by(id=id)
+
+            achievement = session.execute(query)
+            achievement = achievement.scalars().first()
+
+            if not achievement.is_complete:
+                achievement.is_complete = True
+
+        session.commit()
+
+    def get_all_completed():
+        with session_maker() as session:
+            query = select(Achievement)
+            result = session.execute(query)
+
+            return result.scalars().all()
+
+
+achievement_repository = AchievementRepository(model=Achievement)

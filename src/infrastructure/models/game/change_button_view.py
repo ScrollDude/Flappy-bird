@@ -29,38 +29,46 @@ class ChangeButtonView(arcade.View):
         self.anchor_layout.add(self.box_layout)
         self.manager.add(self.anchor_layout)
 
-        self.texture = arcade.load_texture('src/assets/sprites/background-day.png')
+        self.texture = arcade.load_texture("src/assets/sprites/background-day.png")
 
     def on_draw(self):
         self.clear()
-        arcade.draw_texture_rect(self.texture, arcade.rect.XYWH(self.width // 2, self.height // 2, self.width,
-                                                                self.height))
+        arcade.draw_texture_rect(
+            self.texture,
+            arcade.rect.XYWH(
+                self.width // 2, self.height // 2, self.width, self.height
+            ),
+        )
         try:
-            text = arcade.Text(f'Selected button: {chr(self.selected_jump_button)}',
-                               SCREEN_WIDTH // 2,
-                               SCREEN_HEIGHT // 2,
-                               arcade.color.WHITE,
-                               font_size=19,
-                               anchor_x='center',
-                               batch=self.batch
-                               )
+            text = arcade.Text(
+                f"Selected button: {chr(self.selected_jump_button)}",
+                SCREEN_WIDTH // 2,
+                SCREEN_HEIGHT // 2,
+                arcade.color.WHITE,
+                font_size=19,
+                anchor_x="center",
+                batch=self.batch,
+            )
         except ValueError:
-            error_text = arcade.Text(f"Can't show selected symbol.",
-                                     SCREEN_WIDTH // 2,
-                                     SCREEN_HEIGHT // 2,
-                                     arcade.color.WHITE,
-                                     font_size=19,
-                                     anchor_x='center',
-                                     batch=self.batch
-                                     )
+            error_text = arcade.Text(
+                f"Can't show selected symbol.",
+                SCREEN_WIDTH // 2,
+                SCREEN_HEIGHT // 2,
+                arcade.color.WHITE,
+                font_size=19,
+                anchor_x="center",
+                batch=self.batch,
+            )
         self.batch.draw()
         self.manager.draw()
 
     def setup_widgets(self):
         # Здесь добавим ВСЕ виджеты — по порядку!
-        texture_normal = arcade.load_texture(":resources:/gui_basic_assets/button/red_normal.png")
+        texture_normal = arcade.load_texture(
+            ":resources:/gui_basic_assets/button/red_normal.png"
+        )
         restart_button = UITextureButton(texture=texture_normal)
-        restart_button.text = 'Exit'
+        restart_button.text = "Exit"
         restart_button.on_click = self.exit
         self.box_layout.add(restart_button)
 

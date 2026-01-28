@@ -10,7 +10,7 @@ from src.infrastructure.repositories.game_session_repository import (
 from src.infrastructure.models.game.bird import Bird
 from src.infrastructure.models.game.pipe import Pipe
 from src.infrastructure.models.game.game_over_view import GameOverView
-
+from src.infrastructure.services.achievement_service import achievement_service  # noqa
 
 # Константы
 SCREEN_WIDTH = 288
@@ -116,16 +116,30 @@ class FlappyBirdGame(arcade.View):
 
     def load_textures(self):
         self.texture_day = arcade.load_texture("src/assets/sprites/background-day.png")
-        self.texture_night = arcade.load_texture("src/assets/sprites/background-night.png")
-        self.flappy_bird_texture = arcade.load_texture("src/assets/sprites/flappy_bird.png")
+        self.texture_night = arcade.load_texture(
+            "src/assets/sprites/background-night.png"
+        )
+        self.flappy_bird_texture = arcade.load_texture(
+            "src/assets/sprites/flappy_bird.png"
+        )
         self.base_texture = arcade.load_texture("src/assets/sprites/base.png")
         self.message_texture = arcade.load_texture("src/assets/sprites/get_ready.png")
-        self.double_points_texture = arcade.load_texture("src/assets/sprites/double_points.png")
-        self.shield_texture = arcade.load_texture("src/assets/sprites/bubble_shield.png")
-        self.extra_heart_full_texture = arcade.load_texture("src/assets/sprites/extra_heart_full.png")
-        self.extra_heart_empty_texture = arcade.load_texture("src/assets/sprites/extra_heart_empty.png")
+        self.double_points_texture = arcade.load_texture(
+            "src/assets/sprites/double_points.png"
+        )
+        self.shield_texture = arcade.load_texture(
+            "src/assets/sprites/bubble_shield.png"
+        )
+        self.extra_heart_full_texture = arcade.load_texture(
+            "src/assets/sprites/extra_heart_full.png"
+        )
+        self.extra_heart_empty_texture = arcade.load_texture(
+            "src/assets/sprites/extra_heart_empty.png"
+        )
         self.ghost_texture = arcade.load_texture("src/assets/sprites/ghost.png")
-        self.wide_pipes_texture = arcade.load_texture("src/assets/sprites/wide_pipes.png")
+        self.wide_pipes_texture = arcade.load_texture(
+            "src/assets/sprites/wide_pipes.png"
+        )
         self.shield_sprite = None
 
         self.power_up_textures = {
@@ -355,19 +369,21 @@ class FlappyBirdGame(arcade.View):
         """Управление птичкой"""
         if key == arcade.key.P:
             self.paused = not self.paused
-        elif (key == self.jump_button
-              and self.bird.on_game_view
-              and self.health
-              and not self.paused
+        elif (
+            key == self.jump_button
+            and self.bird.on_game_view
+            and self.health
+            and not self.paused
         ):
             self.physics_engine.jump(JUMP)
             self.bird.jump_high = JUMP
             self.bird.current_angle = -60
             self.jump_sound.play(volume=0.5)
-        elif (key == self.jump_button
-              and not self.bird.on_game_view
-              and self.health
-              and not self.paused
+        elif (
+            key == self.jump_button
+            and not self.bird.on_game_view
+            and self.health
+            and not self.paused
         ):
             self.stand_by = False
             self.bird.on_game_view = True
@@ -539,7 +555,7 @@ class FlappyBirdGame(arcade.View):
                             self.ghost_mode = True
                             self.immortality = False
                             self.immortality_time = IMMORTALITY_TIME
-                        elif key == 'Wide Passage':
+                        elif key == "Wide Passage":
                             self.wide_passage = True
                         self.power_up_is_active = True
                 else:

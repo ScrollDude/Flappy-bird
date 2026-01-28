@@ -66,7 +66,9 @@ class GameOverView(arcade.View):
         self.world_camera = previous_screen.world_camera
 
     def setup_widgets(self):
-        texture_normal = arcade.load_texture(":resources:/gui_basic_assets/button/red_normal.png")
+        texture_normal = arcade.load_texture(
+            ":resources:/gui_basic_assets/button/red_normal.png"
+        )
         restart_button = UITextureButton(texture=texture_normal)
         restart_button.text = "Restart"
         restart_button.on_click = self.restart

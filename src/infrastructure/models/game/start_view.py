@@ -29,9 +29,13 @@ class StartView(arcade.View):
 
         # Загрузка всех текстур в стартовое окно
         self.texture = arcade.load_texture("src/assets/sprites/background-day.png")
-        self.flappy_bird_texture = arcade.load_texture("src/assets/sprites/flappy_bird.png")
+        self.flappy_bird_texture = arcade.load_texture(
+            "src/assets/sprites/flappy_bird.png"
+        )
         self.base_texture = arcade.load_texture("src/assets/sprites/base.png")
-        self.start_texture = arcade.load_texture("src/assets/sprites/press_any_key_to_start.png")
+        self.start_texture = arcade.load_texture(
+            "src/assets/sprites/press_any_key_to_start.png"
+        )
 
         self.time_appearance = 0.5
         self.show_text = True
@@ -88,8 +92,8 @@ class StartView(arcade.View):
                     self.width // 2,
                     self.height // 2,
                     self.start_texture.width,
-                    self.start_texture.height
-                )
+                    self.start_texture.height,
+                ),
             )
         self.manager.draw()
 
@@ -108,14 +112,18 @@ class StartView(arcade.View):
 
     def setup_widgets(self):
         # Здесь добавим ВСЕ виджеты — по порядку!
-        texture_normal = arcade.load_texture(":resources:/gui_basic_assets/button/red_normal.png")
+        texture_normal = arcade.load_texture(
+            ":resources:/gui_basic_assets/button/red_normal.png"
+        )
         restart_button = UITextureButton(texture=texture_normal)
-        restart_button.text = 'Change Jump Button'
+        restart_button.text = "Change Jump Button"
         restart_button.on_click = self.change_jump_button
         self.box_layout.add(restart_button)
 
     def change_jump_button(self, event):
-        change_button_view = ChangeButtonView(self.start_view, self.selected_jump_button)
+        change_button_view = ChangeButtonView(
+            self.start_view, self.selected_jump_button
+        )
         self.manager.disable()
         self.window.show_view(change_button_view)
 
