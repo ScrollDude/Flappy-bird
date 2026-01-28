@@ -6,6 +6,7 @@ from src.infrastructure.models.game.start_view import StartView
 import arcade
 from pyglet.image import load
 
+
 # Константы
 SCREEN_WIDTH = 288
 SCREEN_HEIGHT = 512

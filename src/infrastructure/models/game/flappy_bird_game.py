@@ -42,10 +42,12 @@ SPARK_TEX = [
 
 
 class FlappyBirdGame(arcade.View):
-    def __init__(self, start_view):
+    def __init__(self, start_view, jump_button):
         """Инициализация игрового окна"""
         super().__init__()
         self.start_view = start_view
+        self.jump_button = jump_button
+
         self.game_session_service = GameSessionService(
             repository=game_session_repository
         )
@@ -114,30 +116,16 @@ class FlappyBirdGame(arcade.View):
 
     def load_textures(self):
         self.texture_day = arcade.load_texture("src/assets/sprites/background-day.png")
-        self.texture_night = arcade.load_texture(
-            "src/assets/sprites/background-night.png"
-        )
-        self.flappy_bird_texture = arcade.load_texture(
-            "src/assets/sprites/flappy_bird.png"
-        )
+        self.texture_night = arcade.load_texture("src/assets/sprites/background-night.png")
+        self.flappy_bird_texture = arcade.load_texture("src/assets/sprites/flappy_bird.png")
         self.base_texture = arcade.load_texture("src/assets/sprites/base.png")
         self.message_texture = arcade.load_texture("src/assets/sprites/get_ready.png")
-        self.double_points_texture = arcade.load_texture(
-            "src/assets/sprites/double_points.png"
-        )
-        self.shield_texture = arcade.load_texture(
-            "src/assets/sprites/bubble_shield.png"
-        )
-        self.extra_heart_full_texture = arcade.load_texture(
-            "src/assets/sprites/extra_heart_full.png"
-        )
-        self.extra_heart_empty_texture = arcade.load_texture(
-            "src/assets/sprites/extra_heart_empty.png"
-        )
+        self.double_points_texture = arcade.load_texture("src/assets/sprites/double_points.png")
+        self.shield_texture = arcade.load_texture("src/assets/sprites/bubble_shield.png")
+        self.extra_heart_full_texture = arcade.load_texture("src/assets/sprites/extra_heart_full.png")
+        self.extra_heart_empty_texture = arcade.load_texture("src/assets/sprites/extra_heart_empty.png")
         self.ghost_texture = arcade.load_texture("src/assets/sprites/ghost.png")
-        self.wide_pipes_texture = arcade.load_texture(
-            "src/assets/sprites/wide_pipes.png"
-        )
+        self.wide_pipes_texture = arcade.load_texture("src/assets/sprites/wide_pipes.png")
         self.shield_sprite = None
 
         self.power_up_textures = {
@@ -367,21 +355,19 @@ class FlappyBirdGame(arcade.View):
         """Управление птичкой"""
         if key == arcade.key.P:
             self.paused = not self.paused
-        elif (
-            key == arcade.key.SPACE
-            and self.bird.on_game_view
-            and self.health
-            and not self.paused
+        elif (key == self.jump_button
+              and self.bird.on_game_view
+              and self.health
+              and not self.paused
         ):
             self.physics_engine.jump(JUMP)
             self.bird.jump_high = JUMP
             self.bird.current_angle = -60
             self.jump_sound.play(volume=0.5)
-        elif (
-            key == arcade.key.SPACE
-            and not self.bird.on_game_view
-            and self.health
-            and not self.paused
+        elif (key == self.jump_button
+              and not self.bird.on_game_view
+              and self.health
+              and not self.paused
         ):
             self.stand_by = False
             self.bird.on_game_view = True
@@ -469,7 +455,7 @@ class FlappyBirdGame(arcade.View):
                 "pipes_passed": self.pipes_passed,
             }
             self.game_session_service.add(**game_data)
-            game_over = GameOverView(self, self.start_view)
+            game_over = GameOverView(self, self.start_view, self.jump_button)
             self.window.show_view(game_over)
 
     def day_night_change(self):
@@ -552,7 +538,8 @@ class FlappyBirdGame(arcade.View):
                         elif key == "Ghost Mode":
                             self.ghost_mode = True
                             self.immortality = False
-                        elif key == "Wide Passage":
+                            self.immortality_time = IMMORTALITY_TIME
+                        elif key == 'Wide Passage':
                             self.wide_passage = True
                         self.power_up_is_active = True
                 else:
