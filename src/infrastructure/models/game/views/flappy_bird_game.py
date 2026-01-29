@@ -2,15 +2,20 @@ import arcade
 import random
 from pyglet.graphics import Batch
 from arcade.particles import FadeParticle, Emitter, EmitBurst
-from src.infrastructure.repositories import game_session_repository
-from src.infrastructure.services.game_session_service import GameSessionService
+
+from src.infrastructure.repositories.achievement_repository import achievement_repository
 from src.infrastructure.repositories.game_session_repository import (
     game_session_repository,
 )
-from src.infrastructure.models.game.bird import Bird
-from src.infrastructure.models.game.pipe import Pipe
-from src.infrastructure.models.game.game_over_view import GameOverView
-from src.infrastructure.services.achievement_service import achievement_service  # noqa
+from src.infrastructure.repositories.death_reason_repository import death_reason_repository
+
+from src.infrastructure.models.game.game_objects.bird import Bird
+from src.infrastructure.models.game.game_objects.pipe import Pipe
+from src.infrastructure.models.game.views.game_over_view import GameOverView
+
+from src.infrastructure.services.achievement_service import AchievementService  # noqa
+from src.infrastructure.services.game_session_service import GameSessionService
+from src.infrastructure.services.death_reason_service import DeathReasonService
 
 # Константы
 SCREEN_WIDTH = 288
@@ -50,6 +55,14 @@ class FlappyBirdGame(arcade.View):
 
         self.game_session_service = GameSessionService(
             repository=game_session_repository
+        )
+
+        self.achievement_service = AchievementService(
+            repo=achievement_repository
+        )
+
+        self.death_reason_service = DeathReasonService(
+            repo=death_reason_repository
         )
         # Загрузка всех текстур в игровое окно
         self.load_textures()
@@ -440,6 +453,10 @@ class FlappyBirdGame(arcade.View):
                 if MAX_SPEED > self.speed:
                     self.level += 1
                     self.speed = self.speed * SPEED_UPDATE
+                    if self.level >= 5:
+                        self.achievement_service.check_and_update(7)
+            if self.duration_seconds >= 60:
+                self.achievement_service.check_and_update(4)
 
         # Проверка "Пришло ли время появится трубе?"
         if self.time_appearance_for_pipe < 0:
@@ -462,6 +479,7 @@ class FlappyBirdGame(arcade.View):
         )
         self.zooming += delta_time * 10
         if self.zooming > 20.0:
+            find_death_reason = self.death_reason_service.check_for_reasoning(self.death_reason)
             game_data = {
                 "score": self.score,
                 "level_reached": self.level,
@@ -469,6 +487,7 @@ class FlappyBirdGame(arcade.View):
                 "duration_seconds": int(self.duration_seconds),
                 "powerup_types_count": self.powerup_types_count,
                 "pipes_passed": self.pipes_passed,
+                "death_reason_id": find_death_reason,
             }
             self.game_session_service.add(**game_data)
             game_over = GameOverView(self, self.start_view, self.jump_button)
@@ -555,6 +574,7 @@ class FlappyBirdGame(arcade.View):
                             self.ghost_mode = True
                             self.immortality = False
                             self.immortality_time = IMMORTALITY_TIME
+                            self.achievement_service.check_and_update(5)
                         elif key == "Wide Passage":
                             self.wide_passage = True
                         self.power_up_is_active = True
@@ -565,6 +585,8 @@ class FlappyBirdGame(arcade.View):
             self.grab_power_up_sound.play(volume=0.5)
             elem.remove_from_sprite_lists()
             self.powerup_types_count += 1
+            if self.powerup_types_count >= 10:
+                self.achievement_service.check_and_update(8)
 
     def generate_pipes(self):
         """Генерация труб (снизу и сверху друг от друга на 100 пикселей)"""
@@ -643,6 +665,12 @@ class FlappyBirdGame(arcade.View):
                     self.point_sound.play(volume=0.5)
                     self.score += 2 if self.double_points else 1
                     self.pipes_passed += 1
+                if self.pipes_passed >= 1:
+                    self.achievement_service.check_and_update(1)
+                if self.pipes_passed >= 12:
+                    self.achievement_service.check_and_update(2)
+                if self.score >= 100:
+                    self.achievement_service.check_and_update(3)
                 pipe.passed = True
 
     def move_power_up(self):
@@ -685,6 +713,8 @@ class FlappyBirdGame(arcade.View):
 
     def disable_power_up(self):
         """Деактивация усилителя"""
+        if self.active_time_of_power_up <= 0 and self.shield is not None:
+            self.achievement_service.check_and_update(6)
         self.power_up_is_active = False
         self.active_time_of_power_up = TIME_OF_POWER_UP
         self.double_points = False

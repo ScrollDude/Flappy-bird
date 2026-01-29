@@ -13,5 +13,5 @@ class GameSession(Base):
     duration_seconds: Mapped[int] = mapped_column()
     powerup_types_count: Mapped[int] = mapped_column()
     pipes_passed: Mapped[int] = mapped_column()
-    # death_reason_id: Mapped[int] = mapped_column(ForeignKey("death_reason.id"))
-    # death_reason: Mapped[DeathReason] = relationship()
+    death_reason_id: Mapped[int] = mapped_column(ForeignKey("death_reason.id"))
+    death_reason: Mapped[DeathReason] = relationship()

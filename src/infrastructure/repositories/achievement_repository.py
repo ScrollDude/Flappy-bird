@@ -1,5 +1,4 @@
 from sqlalchemy import select
-
 from src.infrastructure.repositories.base_repository import BaseRepository
 from src.infrastructure.models.db.game_session import GameSession
 from src.infrastructure.models.db.achievement import Achievement
@@ -12,7 +11,7 @@ class AchievementRepository(BaseRepository):
             model=model,
         )
 
-    def check_and_update(id: int):
+    def check_and_update(self, id: int):
         with session_maker() as session:
             query = select(Achievement).filter_by(id=id)
 
@@ -22,11 +21,11 @@ class AchievementRepository(BaseRepository):
             if not achievement.is_complete:
                 achievement.is_complete = True
 
-        session.commit()
+            session.commit()
 
-    def get_all_completed():
+    def get_all_completed(self):
         with session_maker() as session:
-            query = select(Achievement)
+            query = select(Achievement).filter(Achievement.is_complete == True)
             result = session.execute(query)
 
             return result.scalars().all()

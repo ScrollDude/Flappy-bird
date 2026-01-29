@@ -9,6 +9,6 @@ class BaseRepository:
 
     def add(self, **params) -> None:
         with session_maker() as session:
-            query = insert(self.model).values(**params)
+            query = insert(self.model).values(params)
             session.execute(query)
             session.commit()

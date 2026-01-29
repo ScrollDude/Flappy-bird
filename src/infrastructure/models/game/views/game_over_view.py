@@ -2,8 +2,8 @@ import arcade
 from pyglet.graphics import Batch
 from arcade.gui import UIManager, UITextureButton
 from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout
-from src.infrastructure.models.game.best_games_view import BestGamesView
-from src.infrastructure.models.game.achievements_view import AchievementsView
+from src.infrastructure.models.game.views.best_games_view import BestGamesView
+from src.infrastructure.models.game.views.achievements_view import AchievementsView
 
 
 # Константы

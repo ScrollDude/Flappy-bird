@@ -1,7 +1,7 @@
 import arcade
-from src.infrastructure.models.game.bird import Bird
-from src.infrastructure.models.game.change_button_view import ChangeButtonView
-from src.infrastructure.models.game.flappy_bird_game import FlappyBirdGame
+from src.infrastructure.models.game.game_objects.bird import Bird
+from src.infrastructure.models.game.views.change_button_view import ChangeButtonView
+from src.infrastructure.models.game.views.flappy_bird_game import FlappyBirdGame
 from arcade.gui import UIManager, UITextureButton
 from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout
 
