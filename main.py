@@ -1,8 +1,9 @@
 from src.infrastructure.models.db.achievement import Achievement
+from src.infrastructure.models.db.death_reason import DeathReason
 from src.core.database import Base, session_maker
 from sqlalchemy import inspect
 from src.core.database import engine
-from src.infrastructure.models.game.start_view import StartView
+from src.infrastructure.models.game.views.start_view import StartView
 import arcade
 from pyglet.image import load
 
@@ -15,7 +16,7 @@ SCREEN_TITLE = "Flappy Bird"
 
 def main():
     inspector = inspect(engine)
-    base = "/mnt/d/projects/flappy_bird/src/assets/achievements/"
+    base = "src/assets/achievements/"
 
     if not inspector.get_table_names():
         Base.metadata.create_all(engine)
@@ -77,7 +78,18 @@ def main():
                 )
             )
 
-        session.commit()
+            session.add(
+                DeathReason(
+                    name='Pipe'
+                )
+            )
+            session.add(
+                DeathReason(
+                    name='Ground'
+                )
+            )
+
+            session.commit()
 
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     window.icon = load("src/assets/favicon.ico")

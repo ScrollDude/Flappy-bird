@@ -1,6 +1,9 @@
 import arcade
+from pyglet.graphics import Batch
 from arcade.gui import UIManager, UITextureButton
 from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout
+from src.infrastructure.repositories.achievement_repository import achievement_repository
+from src.infrastructure.services.achievement_service import AchievementService
 
 
 # Константы
@@ -15,6 +18,14 @@ class AchievementsView(arcade.View):
         super().__init__()
         self.manager = UIManager()
         self.manager.enable()
+
+        self.achievement_service = AchievementService(
+            repo=achievement_repository
+        )
+
+        self.batch = Batch()
+
+        self.completed_achievements = [achievement for achievement in self.achievement_service.get_all_completed()]
 
         self.anchor_layout = UIAnchorLayout(y=-180)
         self.box_layout = UIBoxLayout(vertical=True, space_between=10)
@@ -64,6 +75,7 @@ class AchievementsView(arcade.View):
 
     def on_draw(self):
         self.clear()
+        achievements_list = []
 
         arcade.draw_texture_rect(
             self.texture,
@@ -78,7 +90,7 @@ class AchievementsView(arcade.View):
                 self.width // 2,
                 self.height // 1.7,
                 self.result_texture.width * 2.3,
-                self.result_texture.height * 3.5,
+                self.result_texture.height * 3.8,
             ),
         )
 
@@ -92,19 +104,33 @@ class AchievementsView(arcade.View):
             bold=True,
         )
 
+        for achievement in self.completed_achievements:
+            text = arcade.Text(
+                str(achievement.name),
+                self.width // 2 - 50,
+                self.height // 2 + 162 - (35 * (achievement.id - 1)),
+                anchor_x='center',
+                batch=self.batch
+            )
+            achievements_list.append(text)
+
+            arcade.draw_texture_rect(
+                arcade.load_texture(achievement.icon_url),
+                arcade.rect.XYWH(
+                    self.width // 2 + 50,
+                    self.height // 2 + 170 - (35 * (achievement.id - 1)),
+                    35,
+                    35
+                )
+            )
+
         self.base_list.draw()
 
         self.manager.draw()
+        self.batch.draw()
 
     def on_update(self, delta_time):
-        self.move_base()
-
-    def move_base(self):
-        for base in self.base_list:
-            base.center_x -= 1.0
-            if base.right < 0:
-                self.base_list[0].center_x = self.width // 2
-                self.base_list[1].center_x = self.width + self.width // 2 + 1.2
+        pass
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:

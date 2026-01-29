@@ -1,6 +1,4 @@
 from sqlalchemy import func, select
-from sqlalchemy.orm import selectinload
-from src.infrastructure.models.db.death_reason import DeathReason
 from src.infrastructure.repositories.base_repository import BaseRepository
 from src.infrastructure.models.db.game_session import GameSession
 from src.core.database import session_maker
