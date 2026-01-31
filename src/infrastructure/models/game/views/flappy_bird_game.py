@@ -713,7 +713,7 @@ class FlappyBirdGame(arcade.View):
 
     def disable_power_up(self):
         """Деактивация усилителя"""
-        if self.active_time_of_power_up <= 0 and self.shield is not None:
+        if self.active_time_of_power_up <= 0 and self.shield:
             self.achievement_service.check_and_update(6)
         self.power_up_is_active = False
         self.active_time_of_power_up = TIME_OF_POWER_UP
